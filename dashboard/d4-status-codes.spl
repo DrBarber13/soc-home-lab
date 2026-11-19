@@ -1,0 +1,3 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| stats count BY status

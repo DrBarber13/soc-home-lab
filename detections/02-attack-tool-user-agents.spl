@@ -1,0 +1,5 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| where match(lower(user_agent), "sqlmap|nikto|nmap|hydra|gobuster")
+| stats count min(_time) AS first_seen max(_time) AS last_seen BY src_ip, user_agent
+| convert ctime(first_seen) ctime(last_seen)

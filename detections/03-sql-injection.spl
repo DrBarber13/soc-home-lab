@@ -1,0 +1,5 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| eval decoded=replace(urldecode(uri), "\+", " ")
+| where match(decoded, "(?i)(union\s+(all\s+)?select|or\s+1=1|'\s*or\s*'|sleep\(|benchmark\(|information_schema|@@version)")
+| table _time, src_ip, app, status, decoded

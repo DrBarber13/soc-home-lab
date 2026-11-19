@@ -1,0 +1,5 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| where method="POST" AND uri="/rest/user/login"
+| stats count(eval(status="401")) AS failures count(eval(status="200")) AS successes BY src_ip
+| where failures > 10 AND successes > 0

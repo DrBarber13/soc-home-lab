@@ -1,0 +1,3 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| timechart span=1m count BY status

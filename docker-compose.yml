@@ -1,0 +1,75 @@
+x-splunk-log: &splunk-log
+  driver: splunk
+  options:
+    splunk-url: "https://127.0.0.1:8088"
+    splunk-token: "${HEC_TOKEN}"
+    splunk-index: "web"
+    splunk-sourcetype: "nginx:soc"
+    splunk-format: "json"
+    splunk-insecureskipverify: "true"
+    splunk-verify-connection: "false"
+    tag: "{{.Name}}"
+
+services:
+  splunk:
+    image: splunk/splunk:latest
+    platform: linux/amd64
+    container_name: splunk
+    hostname: splunk
+    environment:
+      SPLUNK_START_ARGS: "--accept-license"
+      SPLUNK_GENERAL_TERMS: "--accept-sgt-current-at-splunk-com"
+      SPLUNK_PASSWORD: "${SPLUNK_PASSWORD}"
+      TZ: "America/New_York"
+    ports:
+      - "8000:8000"
+      - "8088:8088"
+      - "8089:8089"
+    volumes:
+      - splunk-var:/opt/splunk/var
+      - splunk-etc:/opt/splunk/etc
+    networks: [monitoring]
+
+  proxy:
+    image: nginx:alpine
+    container_name: proxy
+    hostname: proxy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/blocklist:/etc/nginx/blocklist:ro
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    depends_on: [dvwa, juiceshop]
+    networks: [frontend, backend]
+    logging: *splunk-log
+
+  dvwa:
+    image: vulnerables/web-dvwa
+    platform: linux/amd64
+    container_name: dvwa
+    hostname: dvwa
+    networks: [backend]
+
+  juiceshop:
+    image: bkimminich/juice-shop
+    container_name: juiceshop
+    hostname: juiceshop
+    networks: [backend]
+
+  kali:
+    image: kalilinux/kali-rolling
+    container_name: kali
+    hostname: kali
+    command: sleep infinity
+    networks: [frontend]
+
+networks:
+  monitoring:
+  frontend:
+  backend:
+    internal: true
+
+volumes:
+  splunk-var:
+  splunk-etc:

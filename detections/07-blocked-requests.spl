@@ -1,0 +1,5 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| where status="403"
+| stats count AS blocked_requests min(_time) AS first_blocked BY src_ip
+| convert ctime(first_blocked)

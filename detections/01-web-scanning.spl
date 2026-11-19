@@ -1,0 +1,6 @@
+index=web sourcetype="nginx:soc"
+| rename line.* AS *
+| where status="404"
+| bin _time span=5m
+| stats count AS not_found dc(uri) AS unique_paths BY _time, src_ip, app
+| where not_found > 50
